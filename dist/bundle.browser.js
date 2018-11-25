@@ -131,8 +131,10 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
                 WeatherComponent.prototype.componentDidMount = function () {
                     this.loadWeatherData();
                 };
-                WeatherComponent.prototype.componentDidUpdate = function () {
-                    this.loadWeatherData();
+                WeatherComponent.prototype.componentDidUpdate = function (prevProps) {
+                    if (JSON.stringify(this.props) !== JSON.stringify(prevProps)) {
+                        this.loadWeatherData();
+                    }
                 };
                 WeatherComponent.prototype.loadWeatherData = function () {
                     var _this = this;

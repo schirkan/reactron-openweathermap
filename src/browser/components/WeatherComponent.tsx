@@ -27,8 +27,10 @@ export class WeatherComponent extends React.Component<WeatherModels.ILocationReq
     this.loadWeatherData();
   }
 
-  public componentDidUpdate() {
-    this.loadWeatherData();
+  public componentDidUpdate(prevProps: WeatherModels.ILocationRequest) {
+    if (JSON.stringify(this.props) !== JSON.stringify(prevProps)) {
+      this.loadWeatherData();
+    }
   }
 
   private loadWeatherData() {
