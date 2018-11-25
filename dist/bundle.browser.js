@@ -1,12 +1,8 @@
-System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontawesome', 'moment', 'react'], function (exports, module) {
+System.register(['moment', 'react'], function (exports, module) {
     'use strict';
-    var faCloudSun, FontAwesomeIcon, moment, createElement, Component, Fragment;
+    var moment, createElement, Component, Fragment;
     return {
         setters: [function (module) {
-            faCloudSun = module.faCloudSun;
-        }, function (module) {
-            FontAwesomeIcon = module.FontAwesomeIcon;
-        }, function (module) {
             moment = module.default;
         }, function (module) {
             createElement = module.createElement;
@@ -71,7 +67,7 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
               }
             }
 
-            var css = "";
+            var css = ".WeatherForecast .date-header {\n  font-weight: bold;\n  font-size: 120%; }\n\n.WeatherForecast .condition-list {\n  display: grid;\n  grid-template-columns: -webkit-max-content -webkit-max-content 200px -webkit-max-content auto;\n  grid-template-columns: max-content max-content 200px max-content auto; }\n  .WeatherForecast .condition-list span {\n    margin-right: 6px; }\n";
             styleInject(css);
 
             var WeatherForecast = /** @class */ (function (_super) {
@@ -80,37 +76,35 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
                 WeatherForecast.prototype.renderConditions = function () {
-                    return (createElement("div", null, this.props.conditions.map(function (c) { return (createElement("div", { key: c.dt },
-                        moment.utc(c.dt_txt).local().format('YYYY-MM-DD HH:mm:ss'),
-                        createElement("br", null),
-                        c.dt_txt,
-                        ": ",
-                        c.weather[0].main,
-                        " (",
-                        c.weather[0].icon,
-                        ") - ",
-                        c.weather[0].description,
-                        createElement("br", null),
-                        "Temp: ",
-                        c.main.temp_min,
-                        " / ",
-                        c.main.temp_max,
-                        createElement("br", null),
-                        c.rain && (createElement(Fragment, null,
-                            "Rain: ",
-                            c.rain['3h'],
-                            " mm",
-                            createElement("br", null))),
-                        c.snow && (createElement(Fragment, null,
-                            "Snow: ",
-                            c.snow['3h'],
-                            " mm",
-                            createElement("br", null))),
-                        createElement("hr", null))); })));
+                    return (createElement("div", { className: "condition-list" }, this.props.conditions.map(function (c) {
+                        var iconClassName = 'wi wi-owm-' + c.weather[0].id;
+                        var rain = c.rain && c.rain['3h'] || 0;
+                        var snow = c.snow && c.snow['3h'] || 0;
+                        rain = Math.round(rain * 100) / 100;
+                        snow = Math.round(snow * 100) / 100;
+                        return (createElement(Fragment, { key: c.dt },
+                            createElement("span", null, moment.utc(c.dt_txt).local().format('HH:mm')),
+                            createElement("span", null,
+                                createElement("i", { className: iconClassName })),
+                            createElement("span", null, c.weather[0].description),
+                            createElement("span", null,
+                                c.main.temp_min,
+                                " / ",
+                                c.main.temp_max),
+                            createElement("span", null,
+                                rain ? (createElement(Fragment, null,
+                                    "Rain: ",
+                                    rain.toFixed(2),
+                                    " mm")) : null,
+                                snow ? (createElement(Fragment, null,
+                                    " - Snow: ",
+                                    snow.toFixed(2),
+                                    " mm")) : null)));
+                    })));
                 };
                 WeatherForecast.prototype.render = function () {
                     return (createElement("section", { className: "WeatherForecast" },
-                        createElement("span", null, this.props.localDateString),
+                        createElement("span", { className: "date-header" }, this.props.localDateString),
                         this.renderConditions()));
                 };
                 return WeatherForecast;
@@ -119,8 +113,20 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
             var css$1 = "";
             styleInject(css$1);
 
-            // tslint:disable-next-line:no-var-requires
-            var moment$1 = require('moment');
+            var styleSheetInjected = false;
+            var injectStyleSheet = function () {
+                if (styleSheetInjected) {
+                    return;
+                }
+                styleSheetInjected = true;
+                var head = document.head || document.getElementsByTagName('head')[0];
+                if (head) {
+                    var style = document.createElement('link');
+                    style.rel = 'stylesheet';
+                    style.href = '/modules/reactron-openweathermap/public/css/weather-icons.min.css';
+                    head.appendChild(style);
+                }
+            };
             var WeatherComponent = exports('WeatherComponent', /** @class */ (function (_super) {
                 __extends(WeatherComponent, _super);
                 function WeatherComponent(props) {
@@ -129,6 +135,7 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
                     return _this;
                 }
                 WeatherComponent.prototype.componentDidMount = function () {
+                    injectStyleSheet();
                     this.loadWeatherData();
                 };
                 WeatherComponent.prototype.componentDidUpdate = function (prevProps) {
@@ -152,7 +159,7 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
                     var days = {};
                     // group by date
                     this.state.weatherForecast.list.forEach(function (item) {
-                        var localDate = moment$1.utc(item.dt_txt).local();
+                        var localDate = moment.utc(item.dt_txt).local();
                         var localDateString = localDate.format('YYYY-MM-DD');
                         if (!days[localDateString]) {
                             days[localDateString] = [];
@@ -171,8 +178,7 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
                         return this.context.renderLoading('Loading weather...');
                     }
                     return (createElement("section", { className: "WeatherComponent" },
-                        createElement("div", null,
-                            createElement(FontAwesomeIcon, { icon: faCloudSun }),
+                        createElement("h2", null,
                             "Weather for ",
                             this.state.weatherForecast.city.name,
                             ", ",

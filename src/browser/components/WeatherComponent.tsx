@@ -1,14 +1,27 @@
 import * as SvgIcons from '@fortawesome/free-solid-svg-icons';
 import * as FontAwesome from '@fortawesome/react-fontawesome';
 import { IReactronComponentContext } from '@schirkan/reactron-interfaces';
+import moment from 'moment';
 import * as React from 'react';
 import { IWeatherService } from 'src/common/interfaces/IWeatherService';
 import { WeatherForecast } from './WeatherForecast';
 
 import './WeatherComponent.scss';
 
-// tslint:disable-next-line:no-var-requires
-const moment = require('moment');
+let styleSheetInjected = false;
+const injectStyleSheet = () => {
+  if (styleSheetInjected) {
+    return;
+  }
+  styleSheetInjected = true;
+  const head = document.head || document.getElementsByTagName('head')[0];
+  if (head) {
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = '/modules/reactron-openweathermap/public/css/weather-icons.min.css';
+    head.appendChild(style);
+  }
+};
 
 interface IWeatherComponentState {
   weatherForecast?: WeatherModels.IWeatherResponse;
@@ -24,6 +37,7 @@ export class WeatherComponent extends React.Component<WeatherModels.ILocationReq
   }
 
   public componentDidMount() {
+    injectStyleSheet();
     this.loadWeatherData();
   }
 
@@ -79,10 +93,9 @@ export class WeatherComponent extends React.Component<WeatherModels.ILocationReq
 
     return (
       <section className="WeatherComponent">
-        <div>
-          <FontAwesome.FontAwesomeIcon icon={SvgIcons.faCloudSun} />
+        <h2>
           Weather for {this.state.weatherForecast.city.name}, {this.state.weatherForecast.city.country}
-        </div>
+        </h2>
         {this.renderForecast()}
       </section>
     );

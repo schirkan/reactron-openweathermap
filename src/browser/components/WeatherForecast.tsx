@@ -3,7 +3,6 @@ import * as React from 'react';
 
 import './WeatherForecast.scss';
 
-
 interface IWeatherForecastProps {
   localDateString: string;
   conditions: WeatherModels.IWeatherResponseCondition[];
@@ -13,17 +12,28 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps> {
 
   private renderConditions() {
     return (
-      <div>
-        {this.props.conditions.map(c => (
-          <div key={c.dt}>
-            {moment.utc(c.dt_txt).local().format('YYYY-MM-DD HH:mm:ss')}<br />
-            {c.dt_txt}: {c.weather[0].main} ({c.weather[0].icon}) - {c.weather[0].description}<br />
-            Temp: {c.main.temp_min} / {c.main.temp_max}<br />
-            {c.rain && (<React.Fragment>Rain: {c.rain['3h']} mm<br /></React.Fragment>)}
-            {c.snow && (<React.Fragment>Snow: {c.snow['3h']} mm<br /></React.Fragment>)}
-            <hr />
-          </div>
-        ))}
+      <div className="condition-list">
+        {this.props.conditions.map(c => {
+          const iconClassName = 'wi wi-owm-' + c.weather[0].id;
+          let rain = c.rain && c.rain['3h'] || 0;
+          let snow = c.snow && c.snow['3h'] || 0;
+
+          rain = Math.round(rain * 100) / 100;
+          snow = Math.round(snow * 100) / 100;
+
+          return (
+            <React.Fragment key={c.dt}>
+              <span>{moment.utc(c.dt_txt).local().format('HH:mm')}</span>
+              <span><i className={iconClassName} /></span>
+              <span>{c.weather[0].description}</span>
+              <span>{c.main.temp_min} / {c.main.temp_max}</span>
+              <span>
+                {rain ? (<React.Fragment>Rain: {rain.toFixed(2)} mm</React.Fragment>) : null}
+                {snow ? (<React.Fragment> - Snow: {snow.toFixed(2)} mm</React.Fragment>) : null}
+              </span>
+            </React.Fragment>
+          );
+        })}
       </div>
     );
     // const iconClassName = 'wi wi-' + this.props.icon + ' wi-wu-' + this.props.icon;
@@ -35,8 +45,8 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps> {
 
   public render() {
     return (
-      <section className="WeatherForecast">
-        <span>{this.props.localDateString}</span>
+      <section className="WeatherForecast" >
+        <span className="date-header">{this.props.localDateString}</span>
         {this.renderConditions()}
       </section>
     );

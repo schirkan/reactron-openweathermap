@@ -1,1 +1,13 @@
-.WeatherForecast {}
+.WeatherForecast {
+    .date-header {
+        font-weight: bold;
+        font-size: 120%;
+    }
+    .condition-list {
+        display: grid;
+        grid-template-columns: max-content max-content 200px max-content auto;
+        span {
+            margin-right: 6px;
+        }
+    }
+}
