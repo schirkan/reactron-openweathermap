@@ -1,11 +1,13 @@
-System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontawesome', 'react'], function (exports, module) {
+System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontawesome', 'moment', 'react'], function (exports, module) {
     'use strict';
-    var faCloudSun, FontAwesomeIcon, createElement, Component, Fragment;
+    var faCloudSun, FontAwesomeIcon, moment, createElement, Component, Fragment;
     return {
         setters: [function (module) {
             faCloudSun = module.faCloudSun;
         }, function (module) {
             FontAwesomeIcon = module.FontAwesomeIcon;
+        }, function (module) {
+            moment = module.default;
         }, function (module) {
             createElement = module.createElement;
             Component = module.Component;
@@ -69,12 +71,10 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
               }
             }
 
-            var css = ".WeatherForecast_WeatherForecast__NnbkQ {}";
+            var css = "";
             styleInject(css);
 
-            // tslint:disable-next-line:no-var-requires
-            var moment = require('moment');
-            var WeatherForecast$1 = /** @class */ (function (_super) {
+            var WeatherForecast = /** @class */ (function (_super) {
                 __extends(WeatherForecast, _super);
                 function WeatherForecast() {
                     return _super !== null && _super.apply(this, arguments) || this;
@@ -121,7 +121,7 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
 
             // tslint:disable-next-line:no-var-requires
             var moment$1 = require('moment');
-            var WeatherComponent$1 = exports('WeatherComponent', /** @class */ (function (_super) {
+            var WeatherComponent = exports('WeatherComponent', /** @class */ (function (_super) {
                 __extends(WeatherComponent, _super);
                 function WeatherComponent(props) {
                     var _this = _super.call(this, props) || this;
@@ -158,7 +158,7 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
                         days[localDateString].push(item);
                     });
                     return (createElement("div", null, Object.keys(days).map(function (dateString) {
-                        return createElement(WeatherForecast$1, { key: dateString, localDateString: dateString, conditions: days[dateString] });
+                        return createElement(WeatherForecast, { key: dateString, localDateString: dateString, conditions: days[dateString] });
                     })));
                 };
                 WeatherComponent.prototype.render = function () {
@@ -181,7 +181,7 @@ System.register(['@fortawesome/free-solid-svg-icons', '@fortawesome/react-fontaw
             }(Component)));
 
             var components = exports('components', [{
-                    component: WeatherComponent$1,
+                    component: WeatherComponent,
                     description: 'Weather Forecast by OpenWeatherMap',
                     displayName: 'Weather Forecast',
                     fields: [{

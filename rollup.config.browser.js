@@ -5,6 +5,7 @@ import replace from 'rollup-plugin-replace';
 import postcss from 'rollup-plugin-postcss';
 import typescript from 'rollup-plugin-typescript';
 import ts from 'typescript';
+import autoprefixer from 'autoprefixer';
 
 export default {
     input: './src/browser/index.ts',
@@ -18,7 +19,10 @@ export default {
             typescript: ts
         }),
         postcss({
-            modules: true
+            plugins: [
+                autoprefixer(),
+            ],
+            // modules: true
         }),
         babel({
             exclude: 'node_modules/**'
@@ -36,6 +40,7 @@ export default {
         '@fortawesome/free-regular-svg-icons',
         '@fortawesome/free-solid-svg-icons',
         '@fortawesome/react-fontawesome',
-        'moment'
+        'moment',
+        'moment-timezone'
     ]
 };

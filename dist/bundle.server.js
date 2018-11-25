@@ -60,6 +60,7 @@ var baseUrl = "http://api.openweathermap.org/data/2.5/";
 // Service to access the WUnderground API
 var WeatherService = /** @class */ (function () {
     function WeatherService() {
+        this.cache = {};
     }
     WeatherService.prototype.start = function (context) {
         return __awaiter(this, void 0, Promise, function () {
@@ -127,18 +128,31 @@ var WeatherService = /** @class */ (function () {
     };
     WeatherService.prototype.getResponse = function (url) {
         return __awaiter(this, void 0, Promise, function () {
-            var response;
+            var now, validCacheTime, response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         console.log('WeatherService.get(' + url + ')');
+                        now = Date.now();
+                        validCacheTime = now - (this.options.cacheDuration * 60 * 1000);
+                        // check timestamp
+                        if (this.cache[url] && this.cache[url].timestamp < validCacheTime) {
+                            delete (this.cache[url]);
+                        }
+                        if (!!this.cache[url]) return [3 /*break*/, 2];
                         return [4 /*yield*/, request.get(url, { json: true, resolveWithFullResponse: true })];
                     case 1:
                         response = _a.sent();
                         if (response.statusCode !== 200) {
                             throw new Error(response.statusMessage);
                         }
-                        return [2 /*return*/, response.body];
+                        this.cache[url] = {
+                            timestamp: now,
+                            result: response.body,
+                            url: url
+                        };
+                        _a.label = 2;
+                    case 2: return [2 /*return*/, this.cache[url].result];
                 }
             });
         });
@@ -150,7 +164,7 @@ var services = [{
         description: 'Service for OpenWeatherMap',
         displayName: 'Weather Service',
         fields: [{
-                displayName: 'ApiKey for OpenWeatherMap',
+                displayName: 'API Key',
                 description: 'API Key for OpenWeatherMap. Get yours at https://openweathermap.org/api',
                 name: 'apiKey',
                 valueType: 'string',
@@ -175,6 +189,15 @@ var services = [{
                     { text: 'Imperial (Fahrenheit)', value: 'imperial' },
                     { text: 'Kelvin', value: '' },
                 ]
+            }, {
+                defaultValue: 15,
+                description: 'Cache duration in minutes',
+                displayName: 'Cache duration (min)',
+                name: 'cacheDuration',
+                valueType: 'number',
+                minValue: 0,
+                maxValue: 120,
+                stepSize: 5
             }],
         name: 'WeatherService',
         service: WeatherService

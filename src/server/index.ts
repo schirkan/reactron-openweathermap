@@ -5,7 +5,7 @@ export const services: IReactronServiceDefinition[] = [{
     description: 'Service for OpenWeatherMap',
     displayName: 'Weather Service',
     fields: [{
-        displayName: 'ApiKey for OpenWeatherMap',
+        displayName: 'API Key',
         description: 'API Key for OpenWeatherMap. Get yours at https://openweathermap.org/api',
         name: 'apiKey',
         valueType: 'string',
@@ -30,6 +30,15 @@ export const services: IReactronServiceDefinition[] = [{
             { text: 'Imperial (Fahrenheit)', value: 'imperial' },
             { text: 'Kelvin', value: '' },
         ]
+    }, {
+        defaultValue: 15,
+        description: 'Cache duration in minutes',
+        displayName: 'Cache duration (min)',
+        name: 'cacheDuration',
+        valueType: 'number',
+        minValue: 0,
+        maxValue: 120,
+        stepSize: 5
     }],
     name: 'WeatherService',
     service: WeatherService

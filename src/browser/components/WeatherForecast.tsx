@@ -1,9 +1,8 @@
+import moment from 'moment';
 import * as React from 'react';
 
-import './WeatherForecast.css';
+import './WeatherForecast.scss';
 
-// tslint:disable-next-line:no-var-requires
-const moment = require('moment');
 
 interface IWeatherForecastProps {
   localDateString: string;

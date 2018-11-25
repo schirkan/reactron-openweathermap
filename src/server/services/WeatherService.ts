@@ -5,9 +5,16 @@ import { IWeatherServiceOptions } from '../../common/interfaces/IWeatherServiceO
 
 const baseUrl = "http://api.openweathermap.org/data/2.5/";
 
+interface IWeatherCacheItem {
+    url: string;
+    timestamp: number;
+    result: WeatherModels.IWeatherResponse
+}
+
 // Service to access the WUnderground API
 export class WeatherService implements IWeatherService {
     private options: IWeatherServiceOptions;
+    private cache: { [url: string]: IWeatherCacheItem } = {};
 
     public async start(context: IReactronServiceContext): Promise<void> {
         console.log('WeatherService.start()');
@@ -57,15 +64,26 @@ export class WeatherService implements IWeatherService {
 
     private async getResponse(url: string): Promise<WeatherModels.IWeatherResponse> {
         console.log('WeatherService.get(' + url + ')');
+        const now = Date.now();
+        const validCacheTime = now - (this.options.cacheDuration * 60*1000);
 
-        // TODO: cache
-
-        const response = await request.get(url, { json: true, resolveWithFullResponse: true }) as request.FullResponse;
-
-        if (response.statusCode !== 200) {
-            throw new Error(response.statusMessage);
+        // check timestamp
+        if (this.cache[url] && this.cache[url].timestamp < validCacheTime) {
+            delete (this.cache[url]);
         }
 
-        return response.body;
+        if (!this.cache[url]) {
+            const response = await request.get(url, { json: true, resolveWithFullResponse: true }) as request.FullResponse;
+            if (response.statusCode !== 200) {
+                throw new Error(response.statusMessage);
+            }
+            this.cache[url] = {
+                timestamp: now,
+                result: response.body,
+                url
+            };
+        }
+
+        return this.cache[url].result;
     }
 }
