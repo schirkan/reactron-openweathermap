@@ -14,9 +14,10 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps> {
     return (
       <div className="condition-list">
         {this.props.conditions.map(c => {
-          const iconClassName = 'wi wi-owm-' + c.weather[0].id;
           let rain = c.rain && c.rain['3h'] || 0;
           let snow = c.snow && c.snow['3h'] || 0;
+          const dayOrNight = c.weather[0].icon.endsWith('n') ? 'night' : 'day';
+          const iconClassName = 'wi wi-owm-' + dayOrNight + '-' + c.weather[0].id;
 
           rain = Math.round(rain * 100) / 100;
           snow = Math.round(snow * 100) / 100;

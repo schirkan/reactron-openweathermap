@@ -77,9 +77,10 @@ System.register(['moment', 'react'], function (exports, module) {
                 }
                 WeatherForecast.prototype.renderConditions = function () {
                     return (createElement("div", { className: "condition-list" }, this.props.conditions.map(function (c) {
-                        var iconClassName = 'wi wi-owm-' + c.weather[0].id;
                         var rain = c.rain && c.rain['3h'] || 0;
                         var snow = c.snow && c.snow['3h'] || 0;
+                        var dayOrNight = c.weather[0].icon.endsWith('n') ? 'night' : 'day';
+                        var iconClassName = 'wi wi-owm-' + dayOrNight + '-' + c.weather[0].id;
                         rain = Math.round(rain * 100) / 100;
                         snow = Math.round(snow * 100) / 100;
                         return (createElement(Fragment, { key: c.dt },
