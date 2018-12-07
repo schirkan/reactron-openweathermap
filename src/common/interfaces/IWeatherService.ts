@@ -1,7 +1,9 @@
 import { IReactronService } from "@schirkan/reactron-interfaces";
+import { ILocationRequest } from "./ILocationRequest";
+import { IWeatherForecast } from "./IWeatherForecast";
 import { IWeatherServiceOptions } from "./IWeatherServiceOptions";
 
 export interface IWeatherService extends IReactronService<IWeatherServiceOptions> {    
-    getCurrentConditions(location: WeatherModels.ILocationRequest): Promise<any>;
-    getFiveDaysForecast(location: WeatherModels.ILocationRequest): Promise<WeatherModels.IWeatherResponse>;
+    getCurrentConditions(location: ILocationRequest): Promise<any>;
+    getFiveDaysForecast(location: ILocationRequest): Promise<IWeatherForecast>;
 }

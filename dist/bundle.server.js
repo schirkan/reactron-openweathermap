@@ -101,7 +101,7 @@ var WeatherService = /** @class */ (function () {
             var url;
             return __generator(this, function (_a) {
                 url = this.getApiUrl('forecast', location);
-                return [2 /*return*/, this.getResponse(url)];
+                return [2 /*return*/, this.getResponse(url).then(WeatherService.ToWeatherForecast)];
             });
         });
     };
@@ -157,9 +157,35 @@ var WeatherService = /** @class */ (function () {
             });
         });
     };
+    WeatherService.ToWeatherForecast = function (response) {
+        var result = {
+            city: response.city,
+            list: []
+        };
+        result.list = response.list.map(function (x) { return ({
+            clouds: x.clouds.all,
+            dt: x.dt,
+            dt_txt: x.dt_txt,
+            grnd_level: x.main.grnd_level,
+            humidit: x.main.humidit,
+            pressure: x.main.pressure,
+            sea_level: x.main.sea_level,
+            temp: x.main.temp,
+            rain: x.rain && x.rain["3h"] || 0,
+            snow: x.snow && x.snow["3h"] || 0,
+            weather_description: x.weather[0].description,
+            weather_icon: x.weather[0].icon,
+            weather_id: x.weather[0].id,
+            weather_txt: x.weather[0].main,
+            wind_deg: x.wind.deg,
+            wind_speed: x.wind.speed
+        }); });
+        return result;
+    };
     return WeatherService;
 }());
 
+// export reactron service definition
 var services = [{
         description: 'Service for OpenWeatherMap',
         displayName: 'Weather Service',

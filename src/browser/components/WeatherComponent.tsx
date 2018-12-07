@@ -1,10 +1,11 @@
-import * as SvgIcons from '@fortawesome/free-solid-svg-icons';
-import * as FontAwesome from '@fortawesome/react-fontawesome';
 import { IReactronComponentContext } from '@schirkan/reactron-interfaces';
 import moment from 'moment';
 import * as React from 'react';
+import { ILocationRequest } from 'src/common/interfaces/ILocationRequest';
+import { IWeatherCondition } from 'src/common/interfaces/IWeatherCondition';
+import { IWeatherForecast } from 'src/common/interfaces/IWeatherForecast';
 import { IWeatherService } from 'src/common/interfaces/IWeatherService';
-import { WeatherForecast } from './WeatherForecast';
+import { WeatherConditionsPerDay } from './WeatherConditionsPerDay';
 
 import './WeatherComponent.scss';
 
@@ -24,14 +25,14 @@ const injectStyleSheet = () => {
 };
 
 interface IWeatherComponentState {
-  weatherForecast?: WeatherModels.IWeatherResponse;
+  weatherForecast?: IWeatherForecast;
   error?: any;
 }
 
-export class WeatherComponent extends React.Component<WeatherModels.ILocationRequest, IWeatherComponentState> {
+export class WeatherComponent extends React.Component<ILocationRequest, IWeatherComponentState> {
   public context: IReactronComponentContext;
 
-  constructor(props: WeatherModels.ILocationRequest) {
+  constructor(props: ILocationRequest) {
     super(props);
     this.state = {};
   }
@@ -41,7 +42,7 @@ export class WeatherComponent extends React.Component<WeatherModels.ILocationReq
     this.loadWeatherData();
   }
 
-  public componentDidUpdate(prevProps: WeatherModels.ILocationRequest) {
+  public componentDidUpdate(prevProps: ILocationRequest) {
     if (JSON.stringify(this.props) !== JSON.stringify(prevProps)) {
       this.loadWeatherData();
     }
@@ -61,7 +62,7 @@ export class WeatherComponent extends React.Component<WeatherModels.ILocationReq
       return;
     }
 
-    const days: { [date: string]: WeatherModels.IWeatherResponseCondition[] } = {};
+    const days: { [date: string]: IWeatherCondition[] } = {};
 
     // group by date
     this.state.weatherForecast.list.forEach(item => {
@@ -76,7 +77,7 @@ export class WeatherComponent extends React.Component<WeatherModels.ILocationReq
     return (
       <div>
         {Object.keys(days).map(dateString =>
-          <WeatherForecast key={dateString} localDateString={dateString} conditions={days[dateString]} />
+          <WeatherConditionsPerDay key={dateString} localDateString={dateString} conditions={days[dateString]} />
         )}
       </div>
     );

@@ -67,31 +67,26 @@ System.register(['moment', 'react'], function (exports, module) {
               }
             }
 
-            var css = ".WeatherForecast .date-header {\n  font-weight: bold;\n  font-size: 120%; }\n\n.WeatherForecast .condition-list {\n  display: grid;\n  grid-template-columns: -webkit-max-content -webkit-max-content 200px -webkit-max-content auto;\n  grid-template-columns: max-content max-content 200px max-content auto; }\n  .WeatherForecast .condition-list span {\n    margin-right: 6px; }\n";
+            var css = ".WeatherConditionsPerDay .date-header {\n  font-weight: bold;\n  font-size: 120%; }\n\n.WeatherConditionsPerDay .condition-list {\n  display: grid;\n  grid-template-columns: -webkit-max-content -webkit-max-content 11em -webkit-max-content auto;\n  grid-template-columns: max-content max-content 11em max-content auto; }\n  .WeatherConditionsPerDay .condition-list span {\n    margin-right: 6px; }\n";
             styleInject(css);
 
-            var WeatherForecast = /** @class */ (function (_super) {
-                __extends(WeatherForecast, _super);
-                function WeatherForecast() {
+            var WeatherConditionsPerDay = /** @class */ (function (_super) {
+                __extends(WeatherConditionsPerDay, _super);
+                function WeatherConditionsPerDay() {
                     return _super !== null && _super.apply(this, arguments) || this;
                 }
-                WeatherForecast.prototype.renderConditions = function () {
+                WeatherConditionsPerDay.prototype.renderConditions = function () {
                     return (createElement("div", { className: "condition-list" }, this.props.conditions.map(function (c) {
-                        var rain = c.rain && c.rain['3h'] || 0;
-                        var snow = c.snow && c.snow['3h'] || 0;
-                        var dayOrNight = c.weather[0].icon.endsWith('n') ? 'night' : 'day';
-                        var iconClassName = 'wi wi-owm-' + dayOrNight + '-' + c.weather[0].id;
-                        rain = Math.round(rain * 100) / 100;
-                        snow = Math.round(snow * 100) / 100;
+                        var dayOrNight = c.weather_icon.endsWith('n') ? 'night' : 'day';
+                        var iconClassName = 'wi wi-owm-' + dayOrNight + '-' + c.weather_id;
+                        var rain = Math.round(c.rain * 100) / 100;
+                        var snow = Math.round(c.snow * 100) / 100;
                         return (createElement(Fragment, { key: c.dt },
                             createElement("span", null, moment.utc(c.dt_txt).local().format('HH:mm')),
                             createElement("span", null,
                                 createElement("i", { className: iconClassName })),
-                            createElement("span", null, c.weather[0].description),
-                            createElement("span", null,
-                                c.main.temp_min,
-                                " / ",
-                                c.main.temp_max),
+                            createElement("span", null, c.weather_description),
+                            createElement("span", null, c.temp),
                             createElement("span", null,
                                 rain ? (createElement(Fragment, null,
                                     "Rain: ",
@@ -103,12 +98,12 @@ System.register(['moment', 'react'], function (exports, module) {
                                     " mm")) : null)));
                     })));
                 };
-                WeatherForecast.prototype.render = function () {
-                    return (createElement("section", { className: "WeatherForecast" },
+                WeatherConditionsPerDay.prototype.render = function () {
+                    return (createElement("section", { className: "WeatherConditionsPerDay" },
                         createElement("span", { className: "date-header" }, this.props.localDateString),
                         this.renderConditions()));
                 };
-                return WeatherForecast;
+                return WeatherConditionsPerDay;
             }(Component));
 
             var css$1 = "";
@@ -168,7 +163,7 @@ System.register(['moment', 'react'], function (exports, module) {
                         days[localDateString].push(item);
                     });
                     return (createElement("div", null, Object.keys(days).map(function (dateString) {
-                        return createElement(WeatherForecast, { key: dateString, localDateString: dateString, conditions: days[dateString] });
+                        return createElement(WeatherConditionsPerDay, { key: dateString, localDateString: dateString, conditions: days[dateString] });
                     })));
                 };
                 WeatherComponent.prototype.render = function () {

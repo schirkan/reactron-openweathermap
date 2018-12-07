@@ -1,5 +1,9 @@
 import { IReactronServiceContext } from '@schirkan/reactron-interfaces';
 import * as request from 'request-promise-native';
+import { ILocationRequest } from 'src/common/interfaces/ILocationRequest';
+import { IWeatherCondition } from 'src/common/interfaces/IWeatherCondition';
+import { IWeatherForecast } from 'src/common/interfaces/IWeatherForecast';
+import { IWeatherResponse } from 'src/common/interfaces/IWeatherResponse';
 import { IWeatherService } from "../../common/interfaces/IWeatherService";
 import { IWeatherServiceOptions } from '../../common/interfaces/IWeatherServiceOptions';
 
@@ -8,7 +12,7 @@ const baseUrl = "http://api.openweathermap.org/data/2.5/";
 interface IWeatherCacheItem {
     url: string;
     timestamp: number;
-    result: WeatherModels.IWeatherResponse
+    result: any;
 }
 
 // Service to access the WUnderground API
@@ -29,17 +33,17 @@ export class WeatherService implements IWeatherService {
         this.options = options;
     }
 
-    public async getCurrentConditions(location: WeatherModels.ILocationRequest): Promise<any> {
+    public async getCurrentConditions(location: ILocationRequest): Promise<any> {
         const url = this.getApiUrl('weather', location);
         return this.getResponse(url);
     }
 
-    public async getFiveDaysForecast(location: WeatherModels.ILocationRequest): Promise<WeatherModels.IWeatherResponse> {
+    public async getFiveDaysForecast(location: ILocationRequest): Promise<IWeatherForecast> {
         const url = this.getApiUrl('forecast', location);
-        return this.getResponse(url);
+        return this.getResponse(url).then(WeatherService.ToWeatherForecast);
     }
 
-    private getApiUrl(endpoint: string, location: WeatherModels.ILocationRequest): string {
+    private getApiUrl(endpoint: string, location: ILocationRequest): string {
         let url = baseUrl + endpoint
             + '?APPID=' + this.options.apiKey
             + '&units=' + this.options.units
@@ -62,10 +66,10 @@ export class WeatherService implements IWeatherService {
         return url;
     }
 
-    private async getResponse(url: string): Promise<WeatherModels.IWeatherResponse> {
+    private async getResponse(url: string): Promise<any> {
         console.log('WeatherService.get(' + url + ')');
         const now = Date.now();
-        const validCacheTime = now - (this.options.cacheDuration * 60*1000);
+        const validCacheTime = now - (this.options.cacheDuration * 60 * 1000);
 
         // check timestamp
         if (this.cache[url] && this.cache[url].timestamp < validCacheTime) {
@@ -85,5 +89,33 @@ export class WeatherService implements IWeatherService {
         }
 
         return this.cache[url].result;
+    }
+
+    private static ToWeatherForecast(response: IWeatherResponse): IWeatherForecast {
+        const result: IWeatherForecast = {
+            city: response.city,
+            list: []
+        };
+
+        result.list = response.list.map(x => ({
+            clouds: x.clouds.all,
+            dt: x.dt,
+            dt_txt: x.dt_txt,
+            grnd_level: x.main.grnd_level,
+            humidit: x.main.humidit,
+            pressure: x.main.pressure,
+            sea_level: x.main.sea_level,
+            temp: x.main.temp,
+            rain: x.rain && x.rain["3h"] || 0,
+            snow: x.snow && x.snow["3h"] || 0,
+            weather_description: x.weather[0].description,
+            weather_icon: x.weather[0].icon,
+            weather_id: x.weather[0].id,
+            weather_txt: x.weather[0].main,
+            wind_deg: x.wind.deg,
+            wind_speed: x.wind.speed
+        } as IWeatherCondition));
+
+        return result;
     }
 }

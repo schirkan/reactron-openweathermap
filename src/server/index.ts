@@ -1,6 +1,17 @@
 import { IReactronServiceDefinition } from '@schirkan/reactron-interfaces';
 import { WeatherService } from './services/WeatherService';
 
+// export interfaces
+export * from '../common/interfaces/ILocationResponse';
+export * from '../common/interfaces/ILocationRequest';
+export * from '../common/interfaces/IWeatherCondition';
+export * from '../common/interfaces/IWeatherForecast';
+export * from '../common/interfaces/IWeatherResponse';
+export * from '../common/interfaces/IWeatherResponseCondition';
+export * from '../common/interfaces/IWeatherService';
+export * from '../common/interfaces/IWeatherServiceOptions';
+
+// export reactron service definition
 export const services: IReactronServiceDefinition[] = [{
     description: 'Service for OpenWeatherMap',
     displayName: 'Weather Service',
