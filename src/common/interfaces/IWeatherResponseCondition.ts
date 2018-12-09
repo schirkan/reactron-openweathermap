@@ -8,7 +8,7 @@ export interface IWeatherResponseCondition {
         pressure: number; // Atmospheric pressure on the sea level by default, hPa
         sea_level: number; // Atmospheric pressure on the sea level, hPa
         grnd_level: number; // Atmospheric pressure on the ground level, hPa
-        humidit: number; // Humidity, %
+        humidity: number; // Humidity, %
     };
     weather: [{
         id: number; // Weather condition id

@@ -167,7 +167,7 @@ var WeatherService = /** @class */ (function () {
             dt: x.dt,
             dt_txt: x.dt_txt,
             grnd_level: x.main.grnd_level,
-            humidit: x.main.humidit,
+            humidity: x.main.humidity,
             pressure: x.main.pressure,
             sea_level: x.main.sea_level,
             temp: x.main.temp,

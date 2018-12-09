@@ -5,7 +5,7 @@ export interface IWeatherCondition {
     pressure: number; // Atmospheric pressure on the sea level by default, hPa
     sea_level: number; // Atmospheric pressure on the sea level, hPa
     grnd_level: number; // Atmospheric pressure on the ground level, hPa
-    humidit: number; // Humidity, %
+    humidity: number; // Humidity, %
     weather_id: number; // Weather condition id
     weather_txt: string; // Group of weather parameters (Rain, Snow, Extreme etc.)
     weather_description: string; // Weather condition within the group
