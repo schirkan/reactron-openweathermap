@@ -53,7 +53,7 @@ export class WeatherService implements IWeatherService {
         let url = baseUrl + endpoint
             + '?APPID=' + this.options.apiKey
             + '&units=' + this.options.units
-            + '&lang=' + this.context.backendService.settings.get().lang; // TODO
+            + '&lang=' + this.context.settings.lang;
 
         if (location) {
             if (location.cityName) {
