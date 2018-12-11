@@ -235,6 +235,11 @@ System.register(['moment', 'react'], function (exports, module) {
                             valueType: 'number'
                         }],
                     name: 'WeatherComponent'
+                }, {
+                    component: WeatherIcon,
+                    type: 'internal',
+                    name: 'WeatherIcon',
+                    displayName: 'WeatherIcon'
                 }]);
 
         }
