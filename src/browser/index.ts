@@ -1,5 +1,6 @@
 import { IReactronComponentDefinition } from '@schirkan/reactron-interfaces';
 import { WeatherComponent } from './components/WeatherComponent';
+import { WeatherIcon } from './components/WeatherIcon';
 
 export * from './components/WeatherComponent';
 
@@ -40,4 +41,9 @@ export const components: IReactronComponentDefinition[] = [{
         valueType: 'number'
     }],
     name: 'WeatherComponent'
+}, {
+    component: WeatherIcon,
+    type: 'internal',
+    name: 'WeatherIcon',
+    displayName: 'WeatherIcon'
 }];
