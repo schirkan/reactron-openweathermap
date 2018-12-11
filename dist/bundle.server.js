@@ -65,6 +65,7 @@ var WeatherService = /** @class */ (function () {
     WeatherService.prototype.start = function (context) {
         return __awaiter(this, void 0, Promise, function () {
             return __generator(this, function (_a) {
+                this.context = context;
                 console.log('WeatherService.start()');
                 return [2 /*return*/];
             });
@@ -86,6 +87,9 @@ var WeatherService = /** @class */ (function () {
                 return [2 /*return*/];
             });
         });
+    };
+    WeatherService.prototype.getOptions = function () {
+        return this.options;
     };
     WeatherService.prototype.getCurrentConditions = function (location) {
         return __awaiter(this, void 0, Promise, function () {
@@ -109,7 +113,7 @@ var WeatherService = /** @class */ (function () {
         var url = baseUrl + endpoint
             + '?APPID=' + this.options.apiKey
             + '&units=' + this.options.units
-            + '&lang=' + this.options.lang;
+            + '&lang=' + this.context.backendService.settings.get().lang; // TODO
         if (location) {
             if (location.cityName) {
                 url += '&q=' + location.cityName;
@@ -194,16 +198,6 @@ var services = [{
                 description: 'API Key for OpenWeatherMap. Get yours at https://openweathermap.org/api',
                 name: 'apiKey',
                 valueType: 'string',
-            }, {
-                defaultValue: 'de',
-                description: 'Language',
-                displayName: 'Language',
-                name: 'lang',
-                valueType: 'string',
-                values: [
-                    { text: 'German', value: 'de' },
-                    { text: 'English', value: 'en' },
-                ]
             }, {
                 defaultValue: 'metric',
                 description: 'Units',

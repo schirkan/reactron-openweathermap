@@ -18,9 +18,11 @@ interface IWeatherCacheItem {
 // Service to access the WUnderground API
 export class WeatherService implements IWeatherService {
     private options: IWeatherServiceOptions;
+    private context: IReactronServiceContext
     private cache: { [url: string]: IWeatherCacheItem } = {};
 
     public async start(context: IReactronServiceContext): Promise<void> {
+        this.context = context;
         console.log('WeatherService.start()');
     }
 
@@ -31,6 +33,10 @@ export class WeatherService implements IWeatherService {
     public async setOptions(options: IWeatherServiceOptions): Promise<void> {
         console.log('WeatherService.setOptions()');
         this.options = options;
+    }
+
+    public getOptions(): Readonly<IWeatherServiceOptions> {
+        return this.options;
     }
 
     public async getCurrentConditions(location: ILocationRequest): Promise<any> {
@@ -47,7 +53,7 @@ export class WeatherService implements IWeatherService {
         let url = baseUrl + endpoint
             + '?APPID=' + this.options.apiKey
             + '&units=' + this.options.units
-            + '&lang=' + this.options.lang;
+            + '&lang=' + this.context.backendService.settings.get().lang; // TODO
 
         if (location) {
             if (location.cityName) {

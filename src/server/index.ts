@@ -21,16 +21,6 @@ export const services: IReactronServiceDefinition[] = [{
         name: 'apiKey',
         valueType: 'string',
     }, {
-        defaultValue: 'de',
-        description: 'Language',
-        displayName: 'Language',
-        name: 'lang',
-        valueType: 'string',
-        values: [
-            { text: 'German', value: 'de' },
-            { text: 'English', value: 'en' },
-        ]
-    }, {
         defaultValue: 'metric',
         description: 'Units',
         displayName: 'Units',
