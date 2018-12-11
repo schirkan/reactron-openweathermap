@@ -70,6 +70,36 @@ System.register(['moment', 'react'], function (exports, module) {
             var css = ".WeatherConditionsPerDay .date-header {\n  font-weight: bold;\n  font-size: 120%; }\n\n.WeatherConditionsPerDay .condition-list {\n  display: grid;\n  grid-template-columns: -webkit-max-content -webkit-max-content 11em -webkit-max-content auto;\n  grid-template-columns: max-content max-content 11em max-content auto; }\n  .WeatherConditionsPerDay .condition-list span {\n    margin-right: 6px; }\n";
             styleInject(css);
 
+            var styleSheetInjected = false;
+            var injectStyleSheet = function () {
+                if (styleSheetInjected) {
+                    return;
+                }
+                styleSheetInjected = true;
+                var head = document.head || document.getElementsByTagName('head')[0];
+                if (head) {
+                    var style = document.createElement('link');
+                    style.rel = 'stylesheet';
+                    style.href = '/modules/reactron-openweathermap/public/css/weather-icons.min.css';
+                    head.appendChild(style);
+                }
+            };
+            var WeatherIcon = /** @class */ (function (_super) {
+                __extends(WeatherIcon, _super);
+                function WeatherIcon() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                WeatherIcon.prototype.componentDidMount = function () {
+                    injectStyleSheet();
+                };
+                WeatherIcon.prototype.render = function () {
+                    var dayOrNight = this.props.night ? 'night' : 'day';
+                    var iconClassName = 'wi wi-owm-' + dayOrNight + '-' + this.props.weatherId;
+                    return createElement("i", { className: iconClassName });
+                };
+                return WeatherIcon;
+            }(Component));
+
             var WeatherConditionsPerDay = /** @class */ (function (_super) {
                 __extends(WeatherConditionsPerDay, _super);
                 function WeatherConditionsPerDay() {
@@ -77,14 +107,13 @@ System.register(['moment', 'react'], function (exports, module) {
                 }
                 WeatherConditionsPerDay.prototype.renderConditions = function () {
                     return (createElement("div", { className: "condition-list" }, this.props.conditions.map(function (c) {
-                        var dayOrNight = c.weather_icon.endsWith('n') ? 'night' : 'day';
-                        var iconClassName = 'wi wi-owm-' + dayOrNight + '-' + c.weather_id;
+                        var night = c.weather_icon.endsWith('n');
                         var rain = Math.round(c.rain * 100) / 100;
                         var snow = Math.round(c.snow * 100) / 100;
                         return (createElement(Fragment, { key: c.dt },
                             createElement("span", null, moment.utc(c.dt_txt).local().format('HH:mm')),
                             createElement("span", null,
-                                createElement("i", { className: iconClassName })),
+                                createElement(WeatherIcon, { weatherId: c.weather_id, night: night })),
                             createElement("span", null, c.weather_description),
                             createElement("span", null, c.temp),
                             createElement("span", null,
@@ -109,20 +138,6 @@ System.register(['moment', 'react'], function (exports, module) {
             var css$1 = "";
             styleInject(css$1);
 
-            var styleSheetInjected = false;
-            var injectStyleSheet = function () {
-                if (styleSheetInjected) {
-                    return;
-                }
-                styleSheetInjected = true;
-                var head = document.head || document.getElementsByTagName('head')[0];
-                if (head) {
-                    var style = document.createElement('link');
-                    style.rel = 'stylesheet';
-                    style.href = '/modules/reactron-openweathermap/public/css/weather-icons.min.css';
-                    head.appendChild(style);
-                }
-            };
             var WeatherComponent = exports('WeatherComponent', /** @class */ (function (_super) {
                 __extends(WeatherComponent, _super);
                 function WeatherComponent(props) {
@@ -131,7 +146,6 @@ System.register(['moment', 'react'], function (exports, module) {
                     return _this;
                 }
                 WeatherComponent.prototype.componentDidMount = function () {
-                    injectStyleSheet();
                     this.loadWeatherData();
                 };
                 WeatherComponent.prototype.componentDidUpdate = function (prevProps) {

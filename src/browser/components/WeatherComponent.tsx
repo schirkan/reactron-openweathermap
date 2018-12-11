@@ -9,21 +9,6 @@ import { WeatherConditionsPerDay } from './WeatherConditionsPerDay';
 
 import './WeatherComponent.scss';
 
-let styleSheetInjected = false;
-const injectStyleSheet = () => {
-  if (styleSheetInjected) {
-    return;
-  }
-  styleSheetInjected = true;
-  const head = document.head || document.getElementsByTagName('head')[0];
-  if (head) {
-    const style = document.createElement('link');
-    style.rel = 'stylesheet';
-    style.href = '/modules/reactron-openweathermap/public/css/weather-icons.min.css';
-    head.appendChild(style);
-  }
-};
-
 interface IWeatherComponentState {
   weatherForecast?: IWeatherForecast;
   error?: any;
@@ -38,7 +23,6 @@ export class WeatherComponent extends React.Component<ILocationRequest, IWeather
   }
 
   public componentDidMount() {
-    injectStyleSheet();
     this.loadWeatherData();
   }
 
