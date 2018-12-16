@@ -5,9 +5,18 @@
     }
     .condition-list {
         display: grid;
-        grid-template-columns: max-content max-content 11em max-content auto;
-        span {
-            margin-right: 6px;
+        grid-template-columns: max-content 2.5em 2.7em 11em;
+        margin-left: 12px;
+        .time {
+            text-align: right;
+        }
+        .icon {
+            text-align: center;
+            margin-left: 10px;
+        }
+        .temp {
+            text-align: right;
+            margin-right: 10px;
         }
     }
 }

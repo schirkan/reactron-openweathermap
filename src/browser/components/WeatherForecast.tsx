@@ -7,35 +7,49 @@ import { IWeatherForecast } from 'src/common/interfaces/IWeatherForecast';
 import { IWeatherService } from 'src/common/interfaces/IWeatherService';
 import { WeatherConditionsPerDay } from './WeatherConditionsPerDay';
 
-import './WeatherComponent.scss';
+import './WeatherForecast.scss';
 
-interface IWeatherComponentState {
+interface IWeatherForecastProps {
+  location: ILocationRequest;
+  showHeader: boolean;
+  showDateHeader: boolean;
+  showShadow: boolean;
+  timeFormat: string;
+  forecastDays: number;
+}
+
+interface IWeatherForecastState {
   weatherForecast?: IWeatherForecast;
   error?: any;
 }
 
-export class WeatherComponent extends React.Component<ILocationRequest, IWeatherComponentState> {
+export class WeatherForecast extends React.Component<IWeatherForecastProps, IWeatherForecastState> {
   public context: IReactronComponentContext;
 
-  constructor(props: ILocationRequest) {
+  constructor(props: IWeatherForecastProps) {
     super(props);
     this.state = {};
   }
 
   public componentDidMount() {
     this.loadWeatherData();
+    // TODO: subscribe refresh
   }
 
-  public componentDidUpdate(prevProps: ILocationRequest) {
+  public componentDidUpdate(prevProps: IWeatherForecastProps) {
     if (JSON.stringify(this.props) !== JSON.stringify(prevProps)) {
       this.loadWeatherData();
     }
   }
 
+  public componentWillUnmount() {
+    // TODO: unsubscribe refresh
+  }
+
   private loadWeatherData() {
     const weatherService = this.context.getService<IWeatherService>('WeatherService');
     if (weatherService) {
-      weatherService.getFiveDaysForecast(this.props)
+      weatherService.getFiveDaysForecast(this.props.location)
         .then(response => this.setState({ weatherForecast: response }))
         .catch(error => this.setState({ error }));
     }
@@ -46,12 +60,20 @@ export class WeatherComponent extends React.Component<ILocationRequest, IWeather
       return;
     }
 
+    const timezone = this.context.settings.timezone;
+    const today = moment().tz(timezone);
+    const forecastDays = Math.max(this.props.forecastDays, 1);
     const days: { [date: string]: IWeatherCondition[] } = {};
 
     // group by date
     this.state.weatherForecast.list.forEach(item => {
-      const localDate = moment.utc(item.dt_txt).local();
-      const localDateString = localDate.format('YYYY-MM-DD');
+      const localDate = moment.utc(item.dt_txt).tz(timezone);
+
+      if (localDate.diff(today, 'days', true) > forecastDays) {
+        return;
+      }
+
+      const localDateString = localDate.format('L');
       if (!days[localDateString]) {
         days[localDateString] = [];
       }
@@ -59,11 +81,13 @@ export class WeatherComponent extends React.Component<ILocationRequest, IWeather
     });
 
     return (
-      <div>
+      <React.Fragment>
         {Object.keys(days).map(dateString =>
-          <WeatherConditionsPerDay key={dateString} localDateString={dateString} conditions={days[dateString]} />
+          <WeatherConditionsPerDay key={dateString} localDateString={dateString}
+            conditions={days[dateString]} timezone={timezone}
+            showDateHeader={this.props.showDateHeader} timeFormat={this.props.timeFormat} />
         )}
-      </div>
+      </React.Fragment>
     );
   }
 
@@ -77,10 +101,11 @@ export class WeatherComponent extends React.Component<ILocationRequest, IWeather
     }
 
     return (
-      <section className="WeatherComponent">
-        <h2>
-          Weather for {this.state.weatherForecast.city.name}, {this.state.weatherForecast.city.country}
-        </h2>
+      <section className="WeatherForecast">
+        <div className="shadow" hidden={!this.props.showShadow} />
+        <div className="header" hidden={!this.props.showHeader}>
+          Weather forecast for {this.state.weatherForecast.city.name}, {this.state.weatherForecast.city.country}
+        </div>
         {this.renderForecast()}
       </section>
     );
