@@ -1,4 +1,5 @@
-import { IInputComponentProps, IReactronComponentDefinition } from '@schirkan/reactron-interfaces';
+import { IReactronComponentDefinition } from '@schirkan/reactron-interfaces';
+import { locationInput } from './components/locationInput';
 import { WeatherForecast } from './components/WeatherForecast';
 import { WeatherIcon } from './components/WeatherIcon';
 
@@ -45,9 +46,7 @@ export const components: IReactronComponentDefinition[] = [{
         //     name: 'cityId',
         //     valueType: 'number'
         }],
-        inputControl: (props: IInputComponentProps) => {
-          return props && props.value && (props.value.cityName || props.value.zip) || '';
-        }
+        inputControl: locationInput
     }, {
         description: 'Show header',
         displayName: 'Show header',
