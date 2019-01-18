@@ -59,30 +59,13 @@ function __generator(thisArg, body) {
 var baseUrl = "http://api.openweathermap.org/data/2.5/";
 // Service to access the WUnderground API
 var WeatherService = /** @class */ (function () {
-    function WeatherService() {
+    function WeatherService(context) {
+        this.context = context;
         this.cache = {};
     }
-    WeatherService.prototype.start = function (context) {
-        return __awaiter(this, void 0, Promise, function () {
-            return __generator(this, function (_a) {
-                this.context = context;
-                console.log('WeatherService.start()');
-                return [2 /*return*/];
-            });
-        });
-    };
-    WeatherService.prototype.stop = function () {
-        return __awaiter(this, void 0, Promise, function () {
-            return __generator(this, function (_a) {
-                console.log('WeatherService.stop()');
-                return [2 /*return*/];
-            });
-        });
-    };
     WeatherService.prototype.setOptions = function (options) {
         return __awaiter(this, void 0, Promise, function () {
             return __generator(this, function (_a) {
-                console.log('WeatherService.setOptions()');
                 this.options = options;
                 return [2 /*return*/];
             });
@@ -136,7 +119,7 @@ var WeatherService = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        console.log('WeatherService.get(' + url + ')');
+                        this.context.log.debug('get', url);
                         now = Date.now();
                         validCacheTime = now - (this.options.cacheDuration * 60 * 1000);
                         // check timestamp
@@ -148,6 +131,7 @@ var WeatherService = /** @class */ (function () {
                     case 1:
                         response = _a.sent();
                         if (response.statusCode !== 200) {
+                            this.context.log.error(response.statusMessage, response.body);
                             throw new Error(response.statusMessage);
                         }
                         this.cache[url] = {
