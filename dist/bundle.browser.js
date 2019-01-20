@@ -1,49 +1,22 @@
-System.register(['react', 'moment'], function (exports, module) {
+System.register(['react', '@schirkan/reactron-interfaces', 'moment'], function (exports, module) {
   'use strict';
-  var createElement, Component, Fragment, moment;
+  var createElement, Component, Fragment, topicNames, moment;
   return {
     setters: [function (module) {
       createElement = module.createElement;
       Component = module.Component;
       Fragment = module.Fragment;
     }, function (module) {
+      topicNames = module.topicNames;
+    }, function (module) {
       moment = module.default;
     }],
     execute: function () {
 
-      var locationInput = function (props) {
+      const locationInput = (props) => {
           return props && props.value && (props.value.cityName || props.value.zip) ||
               (createElement("span", { style: { color: 'red' } }, "missing"));
       };
-
-      /*! *****************************************************************************
-      Copyright (c) Microsoft Corporation. All rights reserved.
-      Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-      this file except in compliance with the License. You may obtain a copy of the
-      License at http://www.apache.org/licenses/LICENSE-2.0
-
-      THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-      KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-      WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-      MERCHANTABLITY OR NON-INFRINGEMENT.
-
-      See the Apache Version 2.0 License for specific language governing permissions
-      and limitations under the License.
-      ***************************************************************************** */
-      /* global Reflect, Promise */
-
-      var extendStatics = function(d, b) {
-          extendStatics = Object.setPrototypeOf ||
-              ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-              function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-          return extendStatics(d, b);
-      };
-
-      function __extends(d, b) {
-          extendStatics(d, b);
-          function __() { this.constructor = d; }
-          d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-      }
 
       var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -1061,6 +1034,31 @@ System.register(['react', 'moment'], function (exports, module) {
       }));
       });
 
+      let styleSheetInjected = false;
+      const injectStyleSheet = () => {
+          if (styleSheetInjected) {
+              return;
+          }
+          styleSheetInjected = true;
+          const head = document.head || document.getElementsByTagName('head')[0];
+          if (head) {
+              const style = document.createElement('link');
+              style.rel = 'stylesheet';
+              style.href = '/modules/reactron-openweathermap/public/css/weather-icons.min.css';
+              head.appendChild(style);
+          }
+      };
+      class WeatherIcon extends Component {
+          componentDidMount() {
+              injectStyleSheet();
+          }
+          render() {
+              const dayOrNight = this.props.night ? 'night' : 'day';
+              const iconClassName = 'wi wi-owm-' + dayOrNight + '-' + this.props.weatherId;
+              return createElement("i", { className: iconClassName });
+          }
+      }
+
       function styleInject(css, ref) {
         if ( ref === void 0 ) ref = {};
         var insertAt = ref.insertAt;
@@ -1091,119 +1089,77 @@ System.register(['react', 'moment'], function (exports, module) {
       var css = ".WeatherConditionsPerDay .date-header {\n  font-weight: bold;\n  font-size: 120%; }\n\n.WeatherConditionsPerDay .condition-list {\n  display: grid;\n  grid-template-columns: -webkit-max-content 2.5em 2.7em 11em;\n  grid-template-columns: max-content 2.5em 2.7em 11em;\n  margin-left: 12px; }\n  .WeatherConditionsPerDay .condition-list .time {\n    text-align: right; }\n  .WeatherConditionsPerDay .condition-list .icon {\n    text-align: center;\n    margin-left: 10px; }\n  .WeatherConditionsPerDay .condition-list .temp {\n    text-align: right;\n    margin-right: 10px; }\n";
       styleInject(css);
 
-      var styleSheetInjected = false;
-      var injectStyleSheet = function () {
-          if (styleSheetInjected) {
-              return;
-          }
-          styleSheetInjected = true;
-          var head = document.head || document.getElementsByTagName('head')[0];
-          if (head) {
-              var style = document.createElement('link');
-              style.rel = 'stylesheet';
-              style.href = '/modules/reactron-openweathermap/public/css/weather-icons.min.css';
-              head.appendChild(style);
-          }
-      };
-      var WeatherIcon = /** @class */ (function (_super) {
-          __extends(WeatherIcon, _super);
-          function WeatherIcon() {
-              return _super !== null && _super.apply(this, arguments) || this;
-          }
-          WeatherIcon.prototype.componentDidMount = function () {
-              injectStyleSheet();
-          };
-          WeatherIcon.prototype.render = function () {
-              var dayOrNight = this.props.night ? 'night' : 'day';
-              var iconClassName = 'wi wi-owm-' + dayOrNight + '-' + this.props.weatherId;
-              return createElement("i", { className: iconClassName });
-          };
-          return WeatherIcon;
-      }(Component));
-
-      var WeatherConditionsPerDay = /** @class */ (function (_super) {
-          __extends(WeatherConditionsPerDay, _super);
-          function WeatherConditionsPerDay() {
-              return _super !== null && _super.apply(this, arguments) || this;
-          }
-          WeatherConditionsPerDay.prototype.render = function () {
-              var _this = this;
-              var timeFormat = this.props.timeFormat || 'LT';
+      class WeatherConditionsPerDay extends Component {
+          render() {
+              const timeFormat = this.props.timeFormat || 'LT';
               return (createElement("section", { className: "WeatherConditionsPerDay" },
                   createElement("span", { className: "date-header", hidden: !this.props.showDateHeader }, this.props.localDateString),
-                  createElement("div", { className: "condition-list" }, this.props.conditions.map(function (c) {
-                      var time = moment.utc(c.dt_txt).tz(_this.props.timezone);
-                      var night = c.weather_icon.endsWith('n');
+                  createElement("div", { className: "condition-list" }, this.props.conditions.map(c => {
+                      const time = moment.utc(c.timestampText).tz(this.props.timezone);
                       // const rain = Math.round(c.rain * 100) / 100;
                       // const snow = Math.round(c.snow * 100) / 100;
-                      return (createElement(Fragment, { key: c.dt },
+                      return (createElement(Fragment, { key: c.timestamp },
                           createElement("span", { className: "time" }, time.format(timeFormat)),
                           createElement("span", { className: "icon" },
-                              createElement(WeatherIcon, { weatherId: c.weather_id, night: night })),
+                              createElement(WeatherIcon, { weatherId: c.weatherId, night: c.night })),
                           createElement("span", { className: "temp" }, numeral(c.temp).format('0.0')),
-                          createElement("span", null, c.weather_description)));
+                          createElement("span", null, c.weatherDescription)));
                   }))));
-          };
-          return WeatherConditionsPerDay;
-      }(Component));
+          }
+      }
 
       var css$1 = ".WeatherForecast .header {\n  border-bottom: 1px solid;\n  margin-bottom: 10px; }\n\n.WeatherForecast .shadow {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  box-shadow: inset 0px -150px 150px -100px #000; }\n";
       styleInject(css$1);
 
-      var WeatherForecast = exports('WeatherForecast', /** @class */ (function (_super) {
-          __extends(WeatherForecast, _super);
-          function WeatherForecast(props) {
-              var _this = _super.call(this, props) || this;
-              _this.state = {};
-              return _this;
+      class WeatherForecast extends Component {
+          constructor(props) {
+              super(props);
+              this.state = {};
+              this.loadWeatherData = this.loadWeatherData.bind(this);
           }
-          WeatherForecast.prototype.componentDidMount = function () {
+          componentDidMount() {
               this.loadWeatherData();
-              // TODO: subscribe refresh
-          };
-          WeatherForecast.prototype.componentDidUpdate = function (prevProps) {
+              this.context.topics.subscribe(topicNames.refresh, this.loadWeatherData);
+          }
+          componentDidUpdate(prevProps) {
               if (JSON.stringify(this.props) !== JSON.stringify(prevProps)) {
                   this.loadWeatherData();
               }
-          };
-          WeatherForecast.prototype.componentWillUnmount = function () {
-              // TODO: unsubscribe refresh
-          };
-          WeatherForecast.prototype.loadWeatherData = function () {
-              var _this = this;
-              var weatherService = this.context.getService('WeatherService');
+          }
+          componentWillUnmount() {
+              this.context.topics.unsubscribe(topicNames.refresh, this.loadWeatherData);
+          }
+          loadWeatherData() {
+              const weatherService = this.context.getService('WeatherService');
               if (weatherService) {
                   weatherService.getFiveDaysForecast(this.props.location)
-                      .then(function (response) { return _this.setState({ weatherForecast: response }); })
-                      .catch(function (error) { return _this.setState({ error: error }); });
+                      .then(response => this.setState({ weatherForecast: response }))
+                      .catch(error => this.setState({ error }));
               }
-          };
-          WeatherForecast.prototype.renderForecast = function () {
-              var _this = this;
+          }
+          renderForecast() {
               if (!this.state.weatherForecast) {
                   return;
               }
-              var timezone = this.context.settings.timezone;
-              var today = moment().tz(timezone);
-              var forecastDays = Math.max(this.props.forecastDays, 1);
-              var days = {};
+              const timezone = this.context.settings.timezone;
+              const today = moment().tz(timezone);
+              const forecastDays = Math.max(this.props.forecastDays, 1);
+              const days = {};
               // group by date
-              this.state.weatherForecast.list.forEach(function (item) {
-                  var localDate = moment.utc(item.dt_txt).tz(timezone);
+              this.state.weatherForecast.conditions.forEach(item => {
+                  const localDate = moment.utc(item.timestampText).tz(timezone);
                   if (localDate.diff(today, 'days', true) > forecastDays) {
                       return;
                   }
-                  var localDateString = localDate.format('L');
+                  const localDateString = localDate.format('L');
                   if (!days[localDateString]) {
                       days[localDateString] = [];
                   }
                   days[localDateString].push(item);
               });
-              return (createElement(Fragment, null, Object.keys(days).map(function (dateString) {
-                  return createElement(WeatherConditionsPerDay, { key: dateString, localDateString: dateString, conditions: days[dateString], timezone: timezone, showDateHeader: _this.props.showDateHeader, timeFormat: _this.props.timeFormat });
-              })));
-          };
-          WeatherForecast.prototype.render = function () {
+              return (createElement(Fragment, null, Object.keys(days).map(dateString => createElement(WeatherConditionsPerDay, { key: dateString, localDateString: dateString, conditions: days[dateString], timezone: timezone, showDateHeader: this.props.showDateHeader, timeFormat: this.props.timeFormat }))));
+          }
+          render() {
               if (this.state.error) {
                   return 'Error: ' + this.state.error;
               }
@@ -1214,15 +1170,14 @@ System.register(['react', 'moment'], function (exports, module) {
                   createElement("div", { className: "shadow", hidden: !this.props.showShadow }),
                   createElement("div", { className: "header", hidden: !this.props.showHeader },
                       "Weather forecast for ",
-                      this.state.weatherForecast.city.name,
+                      this.state.weatherForecast.location.name,
                       ", ",
-                      this.state.weatherForecast.city.country),
+                      this.state.weatherForecast.location.country),
                   this.renderForecast()));
-          };
-          return WeatherForecast;
-      }(Component)));
+          }
+      } exports('WeatherForecast', WeatherForecast);
 
-      var components = exports('components', [{
+      const components = exports('components', [{
               component: WeatherForecast,
               description: 'Weather Forecast by OpenWeatherMap',
               displayName: 'Weather Forecast',

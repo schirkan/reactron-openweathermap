@@ -1,7 +1,7 @@
 import { ILocationResponse } from "./ILocationResponse";
 import { IWeatherResponseCondition } from "./IWeatherResponseCondition";
 
-export interface IWeatherResponse {
+export interface IWeatherResponseForecast {
     city: ILocationResponse;
     list: IWeatherResponseCondition[];
 }

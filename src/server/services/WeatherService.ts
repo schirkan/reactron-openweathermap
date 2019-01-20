@@ -3,11 +3,23 @@ import * as request from 'request-promise-native';
 import { ILocationRequest } from 'src/common/interfaces/ILocationRequest';
 import { IWeatherCondition } from 'src/common/interfaces/IWeatherCondition';
 import { IWeatherForecast } from 'src/common/interfaces/IWeatherForecast';
-import { IWeatherResponse } from 'src/common/interfaces/IWeatherResponse';
-import { IWeatherService } from "../../common/interfaces/IWeatherService";
-import { IWeatherServiceOptions } from '../../common/interfaces/IWeatherServiceOptions';
+import { IWeatherResponseForecast } from 'src/common/interfaces/IWeatherResponseForecast';
+import { IWeatherService } from "src/common/interfaces/IWeatherService";
+import { IWeatherServiceOptions } from 'src/common/interfaces/IWeatherServiceOptions';
+import { IWeatherCurrent } from 'src/common/interfaces/IWeatherCurrent';
+import { IWeatherResponseCurrent } from 'src/common/interfaces/IWeatherResponseCurrent';
 
 const baseUrl = "http://api.openweathermap.org/data/2.5/";
+
+// https://medium.com/@bluepnume/async-javascript-is-much-more-fun-when-you-spend-less-time-thinking-about-control-flow-8580ce9f73fc
+// function memoize(method: any) {
+//   let cache = {};  
+//   return async function() {
+//       let args = JSON.stringify(arguments);
+//       cache[args] = cache[args] || method.apply(this, arguments);
+//       return cache[args];
+//   };
+// }
 
 interface IWeatherCacheItem {
   url: string;
@@ -15,12 +27,14 @@ interface IWeatherCacheItem {
   result: any;
 }
 
-// Service to access the WUnderground API
+// Service to access the openweathermap API
 export class WeatherService implements IWeatherService {
   private options: IWeatherServiceOptions;
   private cache: { [url: string]: IWeatherCacheItem } = {};
 
-  constructor(private context: IReactronServiceContext) { }
+  constructor(private context: IReactronServiceContext) {
+    // this.getResponse = memoize(this.getResponse);
+   }
 
   public async setOptions(options: IWeatherServiceOptions): Promise<void> {
     this.options = options;
@@ -30,14 +44,20 @@ export class WeatherService implements IWeatherService {
     return this.options;
   }
 
-  public async getCurrentConditions(location: ILocationRequest): Promise<any> {
+  public async getCurrentConditions(location: ILocationRequest): Promise<IWeatherCurrent> {
     const url = this.getApiUrl('weather', location);
-    return this.getResponse(url);
+    return this.getResponse(url).then(WeatherService.mapToCurrentConditions);
   }
 
   public async getFiveDaysForecast(location: ILocationRequest): Promise<IWeatherForecast> {
     const url = this.getApiUrl('forecast', location);
-    return this.getResponse(url).then(WeatherService.ToWeatherForecast);
+
+    // TEST
+    const ttt = await this.getCurrentConditions(location);
+    console.log(ttt);
+    this.context.log.debug('getCurrentConditions', ttt);
+
+    return this.getResponse(url).then(WeatherService.mapToWeatherForecast);
   }
 
   private getApiUrl(endpoint: string, location: ILocationRequest): string {
@@ -84,34 +104,67 @@ export class WeatherService implements IWeatherService {
         result: response.body,
         url
       };
+    } else {
+      this.context.log.debug('cache hit');
     }
 
     return this.cache[url].result;
   }
 
-  private static ToWeatherForecast(response: IWeatherResponse): IWeatherForecast {
+  private static mapToCurrentConditions(response: IWeatherResponseCurrent): IWeatherCurrent {
+    const result: IWeatherCurrent = {
+      location: {
+        coords: response.coords,
+        country: response.sys.country,
+        name: response.name,
+        id: response.id
+      },
+      condition: {
+        clouds: response.clouds.all,
+        humidity: response.main.humidity,
+        night: response.weather[0].icon.endsWith('n'),
+        pressure: response.main.pressure,
+        rain: response.rain && response.rain["3h"] || 0,
+        snow: response.snow && response.snow["3h"] || 0,
+        timestamp: response.dt,
+        temp: response.main.temp,
+        weatherDescription: response.weather[0].description,
+        weatherIcon: response.weather[0].icon,
+        weatherId: response.weather[0].id,
+        weatherText: response.weather[0].main,
+        windDegree: response.wind.deg,
+        windSpeed: response.wind.speed,
+        sunrise: response.sys.sunrise,
+        sunset: response.sys.sunset
+      }
+    };
+    return result;
+  }
+
+  private static mapToWeatherForecast(response: IWeatherResponseForecast): IWeatherForecast {
     const result: IWeatherForecast = {
-      city: response.city,
-      list: []
+      location: response.city,
+      conditions: []
     };
 
-    result.list = response.list.map(x => ({
+    result.conditions = response.list.map(x => ({
       clouds: x.clouds.all,
-      dt: x.dt,
-      dt_txt: x.dt_txt,
-      grnd_level: x.main.grnd_level,
       humidity: x.main.humidity,
+      night: x.weather[0].icon.endsWith('n'),
       pressure: x.main.pressure,
-      sea_level: x.main.sea_level,
-      temp: x.main.temp,
+      pressureGroundLevel: x.main.grnd_level,
+      pressureSeaLevel: x.main.sea_level,
       rain: x.rain && x.rain["3h"] || 0,
       snow: x.snow && x.snow["3h"] || 0,
-      weather_description: x.weather[0].description,
-      weather_icon: x.weather[0].icon,
-      weather_id: x.weather[0].id,
-      weather_txt: x.weather[0].main,
-      wind_deg: x.wind.deg,
-      wind_speed: x.wind.speed
+      timestamp: x.dt,
+      timestampText: x.dt_txt,
+      temp: x.main.temp,
+      weatherDescription: x.weather[0].description,
+      weatherIcon: x.weather[0].icon,
+      weatherId: x.weather[0].id,
+      weatherText: x.weather[0].main,
+      windDegree: x.wind.deg,
+      windSpeed: x.wind.speed
     } as IWeatherCondition));
 
     return result;

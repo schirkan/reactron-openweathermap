@@ -28,72 +28,40 @@ function __awaiter(thisArg, _arguments, P, generator) {
     });
 }
 
-function __generator(thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-}
-
-var baseUrl = "http://api.openweathermap.org/data/2.5/";
-// Service to access the WUnderground API
-var WeatherService = /** @class */ (function () {
-    function WeatherService(context) {
+const baseUrl = "http://api.openweathermap.org/data/2.5/";
+// Service to access the openweathermap API
+class WeatherService {
+    constructor(context) {
         this.context = context;
         this.cache = {};
+        // this.getResponse = memoize(this.getResponse);
     }
-    WeatherService.prototype.setOptions = function (options) {
-        return __awaiter(this, void 0, Promise, function () {
-            return __generator(this, function (_a) {
-                this.options = options;
-                return [2 /*return*/];
-            });
+    setOptions(options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.options = options;
         });
-    };
-    WeatherService.prototype.getOptions = function () {
+    }
+    getOptions() {
         return this.options;
-    };
-    WeatherService.prototype.getCurrentConditions = function (location) {
-        return __awaiter(this, void 0, Promise, function () {
-            var url;
-            return __generator(this, function (_a) {
-                url = this.getApiUrl('weather', location);
-                return [2 /*return*/, this.getResponse(url)];
-            });
+    }
+    getCurrentConditions(location) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const url = this.getApiUrl('weather', location);
+            return this.getResponse(url).then(WeatherService.mapToCurrentConditions);
         });
-    };
-    WeatherService.prototype.getFiveDaysForecast = function (location) {
-        return __awaiter(this, void 0, Promise, function () {
-            var url;
-            return __generator(this, function (_a) {
-                url = this.getApiUrl('forecast', location);
-                return [2 /*return*/, this.getResponse(url).then(WeatherService.ToWeatherForecast)];
-            });
+    }
+    getFiveDaysForecast(location) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const url = this.getApiUrl('forecast', location);
+            // TEST
+            const ttt = yield this.getCurrentConditions(location);
+            console.log(ttt);
+            this.context.log.debug('getCurrentConditions', ttt);
+            return this.getResponse(url).then(WeatherService.mapToWeatherForecast);
         });
-    };
-    WeatherService.prototype.getApiUrl = function (endpoint, location) {
-        var url = baseUrl + endpoint
+    }
+    getApiUrl(endpoint, location) {
+        let url = baseUrl + endpoint
             + '?APPID=' + this.options.apiKey
             + '&units=' + this.options.units
             + '&lang=' + this.context.settings.lang;
@@ -112,69 +80,93 @@ var WeatherService = /** @class */ (function () {
             }
         }
         return url;
-    };
-    WeatherService.prototype.getResponse = function (url) {
-        return __awaiter(this, void 0, Promise, function () {
-            var now, validCacheTime, response;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        this.context.log.debug('get', url);
-                        now = Date.now();
-                        validCacheTime = now - (this.options.cacheDuration * 60 * 1000);
-                        // check timestamp
-                        if (this.cache[url] && this.cache[url].timestamp < validCacheTime) {
-                            delete (this.cache[url]);
-                        }
-                        if (!!this.cache[url]) return [3 /*break*/, 2];
-                        return [4 /*yield*/, request.get(url, { json: true, resolveWithFullResponse: true })];
-                    case 1:
-                        response = _a.sent();
-                        if (response.statusCode !== 200) {
-                            this.context.log.error(response.statusMessage, response.body);
-                            throw new Error(response.statusMessage);
-                        }
-                        this.cache[url] = {
-                            timestamp: now,
-                            result: response.body,
-                            url: url
-                        };
-                        _a.label = 2;
-                    case 2: return [2 /*return*/, this.cache[url].result];
+    }
+    getResponse(url) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.context.log.debug('get', url);
+            const now = Date.now();
+            const validCacheTime = now - (this.options.cacheDuration * 60 * 1000);
+            // check timestamp
+            if (this.cache[url] && this.cache[url].timestamp < validCacheTime) {
+                delete (this.cache[url]);
+            }
+            if (!this.cache[url]) {
+                const response = yield request.get(url, { json: true, resolveWithFullResponse: true });
+                if (response.statusCode !== 200) {
+                    this.context.log.error(response.statusMessage, response.body);
+                    throw new Error(response.statusMessage);
                 }
-            });
+                this.cache[url] = {
+                    timestamp: now,
+                    result: response.body,
+                    url
+                };
+            }
+            else {
+                this.context.log.debug('cache hit');
+            }
+            return this.cache[url].result;
         });
-    };
-    WeatherService.ToWeatherForecast = function (response) {
-        var result = {
-            city: response.city,
-            list: []
+    }
+    static mapToCurrentConditions(response) {
+        const result = {
+            location: {
+                coords: response.coords,
+                country: response.sys.country,
+                name: response.name,
+                id: response.id
+            },
+            condition: {
+                clouds: response.clouds.all,
+                humidity: response.main.humidity,
+                night: response.weather[0].icon.endsWith('n'),
+                pressure: response.main.pressure,
+                rain: response.rain && response.rain["3h"] || 0,
+                snow: response.snow && response.snow["3h"] || 0,
+                timestamp: response.dt,
+                temp: response.main.temp,
+                weatherDescription: response.weather[0].description,
+                weatherIcon: response.weather[0].icon,
+                weatherId: response.weather[0].id,
+                weatherText: response.weather[0].main,
+                windDegree: response.wind.deg,
+                windSpeed: response.wind.speed,
+                sunrise: response.sys.sunrise,
+                sunset: response.sys.sunset
+            }
         };
-        result.list = response.list.map(function (x) { return ({
+        return result;
+    }
+    static mapToWeatherForecast(response) {
+        const result = {
+            location: response.city,
+            conditions: []
+        };
+        result.conditions = response.list.map(x => ({
             clouds: x.clouds.all,
-            dt: x.dt,
-            dt_txt: x.dt_txt,
-            grnd_level: x.main.grnd_level,
             humidity: x.main.humidity,
+            night: x.weather[0].icon.endsWith('n'),
             pressure: x.main.pressure,
-            sea_level: x.main.sea_level,
-            temp: x.main.temp,
+            pressureGroundLevel: x.main.grnd_level,
+            pressureSeaLevel: x.main.sea_level,
             rain: x.rain && x.rain["3h"] || 0,
             snow: x.snow && x.snow["3h"] || 0,
-            weather_description: x.weather[0].description,
-            weather_icon: x.weather[0].icon,
-            weather_id: x.weather[0].id,
-            weather_txt: x.weather[0].main,
-            wind_deg: x.wind.deg,
-            wind_speed: x.wind.speed
-        }); });
+            timestamp: x.dt,
+            timestampText: x.dt_txt,
+            temp: x.main.temp,
+            weatherDescription: x.weather[0].description,
+            weatherIcon: x.weather[0].icon,
+            weatherId: x.weather[0].id,
+            weatherText: x.weather[0].main,
+            windDegree: x.wind.deg,
+            windSpeed: x.wind.speed
+        }));
         return result;
-    };
-    return WeatherService;
-}());
+    }
+}
 
 // export reactron service definition
-var services = [{
+const services = [{
         description: 'Service for OpenWeatherMap',
         displayName: 'Weather Service',
         fields: [{

@@ -1,4 +1,4 @@
-import { IReactronComponentContext } from '@schirkan/reactron-interfaces';
+import { IReactronComponentContext, topicNames } from '@schirkan/reactron-interfaces';
 import moment from 'moment';
 import * as React from 'react';
 import { ILocationRequest } from 'src/common/interfaces/ILocationRequest';
@@ -29,11 +29,12 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps, IWea
   constructor(props: IWeatherForecastProps) {
     super(props);
     this.state = {};
+    this.loadWeatherData = this.loadWeatherData.bind(this);
   }
 
   public componentDidMount() {
     this.loadWeatherData();
-    // TODO: subscribe refresh
+    this.context.topics.subscribe(topicNames.refresh, this.loadWeatherData);
   }
 
   public componentDidUpdate(prevProps: IWeatherForecastProps) {
@@ -43,7 +44,7 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps, IWea
   }
 
   public componentWillUnmount() {
-    // TODO: unsubscribe refresh
+    this.context.topics.unsubscribe(topicNames.refresh, this.loadWeatherData);
   }
 
   private loadWeatherData() {
@@ -66,8 +67,8 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps, IWea
     const days: { [date: string]: IWeatherCondition[] } = {};
 
     // group by date
-    this.state.weatherForecast.list.forEach(item => {
-      const localDate = moment.utc(item.dt_txt).tz(timezone);
+    this.state.weatherForecast.conditions.forEach(item => {
+      const localDate = moment.utc(item.timestampText).tz(timezone);
 
       if (localDate.diff(today, 'days', true) > forecastDays) {
         return;
@@ -104,7 +105,7 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps, IWea
       <section className="WeatherForecast">
         <div className="shadow" hidden={!this.props.showShadow} />
         <div className="header" hidden={!this.props.showHeader}>
-          Weather forecast for {this.state.weatherForecast.city.name}, {this.state.weatherForecast.city.country}
+          Weather forecast for {this.state.weatherForecast.location.name}, {this.state.weatherForecast.location.country}
         </div>
         {this.renderForecast()}
       </section>

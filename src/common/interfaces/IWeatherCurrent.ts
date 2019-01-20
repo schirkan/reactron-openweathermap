@@ -1,7 +1,7 @@
 import { ILocationResponse } from "./ILocationResponse";
 import { IWeatherCondition } from "./IWeatherCondition";
 
-export interface IWeatherForecast {
+export interface IWeatherCurrent {
     location: ILocationResponse;
-    conditions: IWeatherCondition[];
+    condition: IWeatherCondition;
 }
