@@ -11,20 +11,9 @@ import { IWeatherResponseCurrent } from 'src/common/interfaces/IWeatherResponseC
 
 const baseUrl = "http://api.openweathermap.org/data/2.5/";
 
-// https://medium.com/@bluepnume/async-javascript-is-much-more-fun-when-you-spend-less-time-thinking-about-control-flow-8580ce9f73fc
-// function memoize(method: any) {
-//   let cache = {};  
-//   return async function() {
-//       let args = JSON.stringify(arguments);
-//       cache[args] = cache[args] || method.apply(this, arguments);
-//       return cache[args];
-//   };
-// }
-
 interface IWeatherCacheItem {
-  url: string;
   timestamp: number;
-  result: any;
+  result: Promise<any>;
 }
 
 // Service to access the openweathermap API
@@ -32,9 +21,7 @@ export class WeatherService implements IWeatherService {
   private options: IWeatherServiceOptions;
   private cache: { [url: string]: IWeatherCacheItem } = {};
 
-  constructor(private context: IReactronServiceContext) {
-    // this.getResponse = memoize(this.getResponse);
-   }
+  constructor(private context: IReactronServiceContext) { }
 
   public async setOptions(options: IWeatherServiceOptions): Promise<void> {
     this.options = options;
@@ -45,19 +32,15 @@ export class WeatherService implements IWeatherService {
   }
 
   public async getCurrentConditions(location: ILocationRequest): Promise<IWeatherCurrent> {
+    this.context.log.debug('getCurrentConditions', location);
     const url = this.getApiUrl('weather', location);
-    return this.getResponse(url).then(WeatherService.mapToCurrentConditions);
+    return this.getResponse(url, WeatherService.mapToCurrentConditions);
   }
 
   public async getFiveDaysForecast(location: ILocationRequest): Promise<IWeatherForecast> {
+    this.context.log.debug('getFiveDaysForecast', location);
     const url = this.getApiUrl('forecast', location);
-
-    // TEST
-    const ttt = await this.getCurrentConditions(location);
-    console.log(ttt);
-    this.context.log.debug('getCurrentConditions', ttt);
-
-    return this.getResponse(url).then(WeatherService.mapToWeatherForecast);
+    return this.getResponse(url, WeatherService.mapToWeatherForecast);
   }
 
   private getApiUrl(endpoint: string, location: ILocationRequest): string {
@@ -73,7 +56,7 @@ export class WeatherService implements IWeatherService {
       if (location.zip) {
         url += '&zip=' + location.zip;
       }
-      if (location.coords) {
+      if (location.coords && (location.coords.lon !== 0 || location.coords.lat !== 0)) {
         url += '&lon=' + location.coords.lon + '&lat=' + location.coords.lat;
       }
       if (location.cityId) {
@@ -83,8 +66,7 @@ export class WeatherService implements IWeatherService {
     return url;
   }
 
-  private async getResponse(url: string): Promise<any> {
-    this.context.log.debug('get', url);
+  private async getResponse<TResponse>(url: string, mapper: (response: any) => TResponse): Promise<TResponse> {
     const now = Date.now();
     const validCacheTime = now - (this.options.cacheDuration * 60 * 1000);
 
@@ -94,21 +76,25 @@ export class WeatherService implements IWeatherService {
     }
 
     if (!this.cache[url]) {
-      const response = await request.get(url, { json: true, resolveWithFullResponse: true }) as request.FullResponse;
-      if (response.statusCode !== 200) {
-        this.context.log.error(response.statusMessage, response.body);
-        throw new Error(response.statusMessage);
-      }
       this.cache[url] = {
         timestamp: now,
-        result: response.body,
-        url
+        result: this.getResponseInternal(url, mapper)
       };
     } else {
       this.context.log.debug('cache hit');
     }
 
     return this.cache[url].result;
+  }
+
+  private async getResponseInternal<TResponse>(url: string, mapper: (response: any) => TResponse): Promise<TResponse> {
+    this.context.log.debug('fetch', url);
+    const response = await request.get(url, { json: true, resolveWithFullResponse: true }) as request.FullResponse;
+    if (response.statusCode !== 200) {
+      this.context.log.error(response.statusMessage, response.body);
+      throw new Error(response.statusMessage);
+    }
+    return mapper(response.body);
   }
 
   private static mapToCurrentConditions(response: IWeatherResponseCurrent): IWeatherCurrent {

@@ -38,7 +38,7 @@ export const services: IReactronServiceDefinition[] = [{
     displayName: 'Cache duration (min)',
     name: 'cacheDuration',
     valueType: 'number',
-    minValue: 0,
+    minValue: 5,
     maxValue: 120,
     stepSize: 5
   }],

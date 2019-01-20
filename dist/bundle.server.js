@@ -34,7 +34,6 @@ class WeatherService {
     constructor(context) {
         this.context = context;
         this.cache = {};
-        // this.getResponse = memoize(this.getResponse);
     }
     setOptions(options) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -46,18 +45,16 @@ class WeatherService {
     }
     getCurrentConditions(location) {
         return __awaiter(this, void 0, void 0, function* () {
+            this.context.log.debug('getCurrentConditions', location);
             const url = this.getApiUrl('weather', location);
-            return this.getResponse(url).then(WeatherService.mapToCurrentConditions);
+            return this.getResponse(url, WeatherService.mapToCurrentConditions);
         });
     }
     getFiveDaysForecast(location) {
         return __awaiter(this, void 0, void 0, function* () {
+            this.context.log.debug('getFiveDaysForecast', location);
             const url = this.getApiUrl('forecast', location);
-            // TEST
-            const ttt = yield this.getCurrentConditions(location);
-            console.log(ttt);
-            this.context.log.debug('getCurrentConditions', ttt);
-            return this.getResponse(url).then(WeatherService.mapToWeatherForecast);
+            return this.getResponse(url, WeatherService.mapToWeatherForecast);
         });
     }
     getApiUrl(endpoint, location) {
@@ -72,7 +69,7 @@ class WeatherService {
             if (location.zip) {
                 url += '&zip=' + location.zip;
             }
-            if (location.coords) {
+            if (location.coords && (location.coords.lon !== 0 || location.coords.lat !== 0)) {
                 url += '&lon=' + location.coords.lon + '&lat=' + location.coords.lat;
             }
             if (location.cityId) {
@@ -81,9 +78,8 @@ class WeatherService {
         }
         return url;
     }
-    getResponse(url) {
+    getResponse(url, mapper) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.context.log.debug('get', url);
             const now = Date.now();
             const validCacheTime = now - (this.options.cacheDuration * 60 * 1000);
             // check timestamp
@@ -91,21 +87,26 @@ class WeatherService {
                 delete (this.cache[url]);
             }
             if (!this.cache[url]) {
-                const response = yield request.get(url, { json: true, resolveWithFullResponse: true });
-                if (response.statusCode !== 200) {
-                    this.context.log.error(response.statusMessage, response.body);
-                    throw new Error(response.statusMessage);
-                }
                 this.cache[url] = {
                     timestamp: now,
-                    result: response.body,
-                    url
+                    result: this.getResponseInternal(url, mapper)
                 };
             }
             else {
                 this.context.log.debug('cache hit');
             }
             return this.cache[url].result;
+        });
+    }
+    getResponseInternal(url, mapper) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.context.log.debug('fetch', url);
+            const response = yield request.get(url, { json: true, resolveWithFullResponse: true });
+            if (response.statusCode !== 200) {
+                this.context.log.error(response.statusMessage, response.body);
+                throw new Error(response.statusMessage);
+            }
+            return mapper(response.body);
         });
     }
     static mapToCurrentConditions(response) {
@@ -191,7 +192,7 @@ const services = [{
                 displayName: 'Cache duration (min)',
                 name: 'cacheDuration',
                 valueType: 'number',
-                minValue: 0,
+                minValue: 5,
                 maxValue: 120,
                 stepSize: 5
             }],
