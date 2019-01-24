@@ -27,7 +27,7 @@ export class WeatherService implements IWeatherService {
     this.options = options;
   }
 
-  public getOptions(): Readonly<IWeatherServiceOptions> {
+  public async getOptions(): Promise<Readonly<IWeatherServiceOptions>> {
     return this.options;
   }
 

@@ -27,6 +27,7 @@ export default {
         '@fortawesome/free-regular-svg-icons',
         '@fortawesome/free-solid-svg-icons',
         '@fortawesome/react-fontawesome',
+        'numeral',
         'moment',
         'moment-timezone'
     ]

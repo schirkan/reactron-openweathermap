@@ -29,30 +29,33 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps, IWea
   constructor(props: IWeatherForecastProps) {
     super(props);
     this.state = {};
-    this.loadWeatherData = this.loadWeatherData.bind(this);
+    this.loadData = this.loadData.bind(this);
   }
 
   public componentDidMount() {
-    this.loadWeatherData();
-    this.context.topics.subscribe(topicNames.refresh, this.loadWeatherData);
-  }
-
-  public componentDidUpdate(prevProps: IWeatherForecastProps) {
-    if (JSON.stringify(this.props) !== JSON.stringify(prevProps)) {
-      this.loadWeatherData();
-    }
+    this.context.topics.subscribe(topicNames.refresh, this.loadData);
+    this.loadData();
   }
 
   public componentWillUnmount() {
-    this.context.topics.unsubscribe(topicNames.refresh, this.loadWeatherData);
+    this.context.topics.unsubscribe(topicNames.refresh, this.loadData);
   }
 
-  private loadWeatherData() {
-    const weatherService = this.context.getService<IWeatherService>('WeatherService');
+  public componentDidUpdate(prevProps: any) {
+    if (JSON.stringify(this.props) !== JSON.stringify(prevProps)) {
+      this.loadData();
+    }
+  }
+
+  private async loadData() {
+    const weatherService = await this.context.getService<IWeatherService>('WeatherService');
     if (weatherService) {
-      weatherService.getFiveDaysForecast(this.props.location)
-        .then(response => this.setState({ weatherForecast: response }))
-        .catch(error => this.setState({ error }));
+      try {
+        const weatherForecast = await weatherService.getFiveDaysForecast(this.props.location);
+        this.setState({ weatherForecast });
+      } catch (error) {
+        this.setState({ error });
+      }
     }
   }
 

@@ -41,7 +41,9 @@ class WeatherService {
         });
     }
     getOptions() {
-        return this.options;
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.options;
+        });
     }
     getCurrentConditions(location) {
         return __awaiter(this, void 0, void 0, function* () {
