@@ -47,14 +47,12 @@ class WeatherService {
     }
     getCurrentConditions(location) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.context.log.debug('getCurrentConditions', location);
             const url = this.getApiUrl('weather', location);
             return this.getResponse(url, WeatherService.mapToCurrentConditions);
         });
     }
     getFiveDaysForecast(location) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.context.log.debug('getFiveDaysForecast', location);
             const url = this.getApiUrl('forecast', location);
             return this.getResponse(url, WeatherService.mapToWeatherForecast);
         });

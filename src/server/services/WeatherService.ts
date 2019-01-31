@@ -32,13 +32,11 @@ export class WeatherService implements IWeatherService {
   }
 
   public async getCurrentConditions(location: ILocationRequest): Promise<IWeatherCurrent> {
-    this.context.log.debug('getCurrentConditions', location);
     const url = this.getApiUrl('weather', location);
     return this.getResponse(url, WeatherService.mapToCurrentConditions);
   }
 
   public async getFiveDaysForecast(location: ILocationRequest): Promise<IWeatherForecast> {
-    this.context.log.debug('getFiveDaysForecast', location);
     const url = this.getApiUrl('forecast', location);
     return this.getResponse(url, WeatherService.mapToWeatherForecast);
   }
