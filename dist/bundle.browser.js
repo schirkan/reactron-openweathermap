@@ -118,13 +118,13 @@ System.register(['react', '@schirkan/reactron-interfaces', 'moment', 'numeral'],
           }
       }
 
-      var css$1 = ".WeatherForecast .header {\n  border-bottom: 1px solid;\n  margin-bottom: 10px; }\n\n.WeatherForecast .shadow {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  box-shadow: inset 0px -150px 150px -100px #000; }\n";
+      var css$1 = ".WeatherForecast .shadow {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  box-shadow: inset 0px -150px 150px -100px #000; }\n";
       styleInject(css$1);
 
       class WeatherForecast extends Component {
           constructor(props) {
               super(props);
-              this.state = {};
+              this.state = { loading: false };
               this.loadData = this.loadData.bind(this);
           }
           componentDidMount() {
@@ -143,12 +143,13 @@ System.register(['react', '@schirkan/reactron-interfaces', 'moment', 'numeral'],
               return __awaiter(this, void 0, void 0, function* () {
                   const weatherService = yield this.context.getService('WeatherService');
                   if (weatherService) {
+                      this.setState({ loading: true });
                       try {
                           const weatherForecast = yield weatherService.getFiveDaysForecast(this.props.location);
-                          this.setState({ weatherForecast });
+                          this.setState({ weatherForecast, loading: false });
                       }
                       catch (error) {
-                          this.setState({ error });
+                          this.setState({ error, loading: false });
                       }
                   }
               });
@@ -175,6 +176,16 @@ System.register(['react', '@schirkan/reactron-interfaces', 'moment', 'numeral'],
               });
               return (createElement(Fragment, null, Object.keys(days).map(dateString => createElement(WeatherConditionsPerDay, { key: dateString, localDateString: dateString, conditions: days[dateString], timezone: timezone, showDateHeader: this.props.showDateHeader, timeFormat: this.props.timeFormat }))));
           }
+          renderHeader() {
+              if (!this.props.showHeader) {
+                  return null;
+              }
+              const location = this.state.weatherForecast ? this.state.weatherForecast.location.name + ', ' + this.state.weatherForecast.location.country : '...';
+              return (createElement("h2", null,
+                  "Weather forecast for ",
+                  location,
+                  this.state.loading && this.context.renderLoading(undefined, '1x', { display: 'inline-block', marginLeft: '8px' })));
+          }
           render() {
               if (this.state.error) {
                   return 'Error: ' + this.state.error;
@@ -184,11 +195,7 @@ System.register(['react', '@schirkan/reactron-interfaces', 'moment', 'numeral'],
               }
               return (createElement("section", { className: "WeatherForecast" },
                   createElement("div", { className: "shadow", hidden: !this.props.showShadow }),
-                  createElement("div", { className: "header", hidden: !this.props.showHeader },
-                      "Weather forecast for ",
-                      this.state.weatherForecast.location.name,
-                      ", ",
-                      this.state.weatherForecast.location.country),
+                  this.renderHeader(),
                   this.renderForecast()));
           }
       } exports('WeatherForecast', WeatherForecast);

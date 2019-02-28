@@ -21,6 +21,7 @@ interface IWeatherForecastProps {
 interface IWeatherForecastState {
   weatherForecast?: IWeatherForecast;
   error?: any;
+  loading: boolean;
 }
 
 export class WeatherForecast extends React.Component<IWeatherForecastProps, IWeatherForecastState> {
@@ -28,7 +29,7 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps, IWea
 
   constructor(props: IWeatherForecastProps) {
     super(props);
-    this.state = {};
+    this.state = { loading: false };
     this.loadData = this.loadData.bind(this);
   }
 
@@ -50,11 +51,12 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps, IWea
   private async loadData() {
     const weatherService = await this.context.getService<IWeatherService>('WeatherService');
     if (weatherService) {
+      this.setState({ loading: true });
       try {
         const weatherForecast = await weatherService.getFiveDaysForecast(this.props.location);
-        this.setState({ weatherForecast });
+        this.setState({ weatherForecast, loading: false });
       } catch (error) {
-        this.setState({ error });
+        this.setState({ error, loading: false });
       }
     }
   }
@@ -95,6 +97,20 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps, IWea
     );
   }
 
+  private renderHeader() {
+    if (!this.props.showHeader) {
+      return null;
+    }
+    const location = this.state.weatherForecast ? this.state.weatherForecast.location.name + ', ' + this.state.weatherForecast.location.country : '...';
+
+    return (
+      <h2>
+        Weather forecast for {location}
+        {this.state.loading && this.context.renderLoading(undefined, '1x', { display: 'inline-block', marginLeft: '8px' })}
+      </h2>
+    );
+  }
+
   public render() {
     if (this.state.error) {
       return 'Error: ' + this.state.error;
@@ -107,9 +123,7 @@ export class WeatherForecast extends React.Component<IWeatherForecastProps, IWea
     return (
       <section className="WeatherForecast">
         <div className="shadow" hidden={!this.props.showShadow} />
-        <div className="header" hidden={!this.props.showHeader}>
-          Weather forecast for {this.state.weatherForecast.location.name}, {this.state.weatherForecast.location.country}
-        </div>
+        {this.renderHeader()}
         {this.renderForecast()}
       </section>
     );
